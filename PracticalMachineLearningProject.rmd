@@ -147,7 +147,7 @@ This provides the final list of predicted values as follows:
 pred_RF_Final <- predict(mod_RF, testing)
 pred_RF_Final
 ```
-
+[1] B A B A A E D B A A B C B A E E A B B B
 
 
 

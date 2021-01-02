@@ -1,0 +1,155 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Venkat Ram Rao"
+date: "1/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This report is for the final course project for the Practical Machine Learning course, part of the John Hopkins Statistics and Machine Learning Specialization on Coursera.
+
+The goal of the project is to analyze data captured by a third party and build an algorithm to predict how correctly the exercise was performed.
+The model will be used to predict a test set of 20 records.
+
+The training and test data for this was provided at the following location: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har
+ 
+The "correctness" of the exercise is denoted by the "classe" variable in the data and uses a code A-E. That is what we will predict.
+
+## Load Libraries and required data
+The Caret package will be used  to build the model and make predictions.
+I am loading the data directly from the source
+
+```{r}
+library(caret)
+
+train_url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+test_url  <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+rawTrainData <- read.csv(url(train_url))
+rawTestData <- read.csv(url(test_url))
+
+dim(rawTrainData)
+dim(rawTestData)
+```
+
+## Exploratory analysis and data cleanup
+
+The Training set consists of 19622 rows and 160 columns of data. A cursory glace at the data shows that we have a lot of columns which are either blank or NA. These will be removed and ignored in building the model.
+
+Also, the first few columns - user_name, raw_timestamp_part_1, raw_timestamp_part_2,cvtd_timestamp - are  the name of the participant and the timestamp. These will not effect the prediction and will be removed prior to building the model.
+
+```{r}
+head(rawTrainData)
+
+# 1 - remove data with zero variance
+
+## - check Variance of columns
+apply(rawTrainData, 2, var)
+
+##remove columns with near zero variance
+nearZeroVarCols <- nearZeroVar(rawTrainData)
+training <- rawTrainData[,-nearZeroVarCols]
+testing <- rawTestData[,-nearZeroVarCols]
+
+dim(training)
+dim(testing)
+
+# 2 - remove data with NA
+
+training <- training[, colSums(is.na(training)) == 0] 
+testing <- testing[, colSums(is.na(testing)) == 0] 
+
+dim(training)
+dim(testing)
+
+head(training)
+
+# 3 - remove first 5 columns - user_name, raw_timestamp_part_1, raw_timestamp_part_2,cvtd_timestamp
+
+training <-training[,-c(1:5)]
+testing <- testing[,-c(1:5)]
+
+dim(training)
+dim(testing)
+
+head(training)
+
+```
+
+
+## Create Training and validation Subsets
+
+I will be further subdividing the training data into Training and Validation sets. All training will happen using the subTraining dataframe
+
+```{r}
+subSamples <- createDataPartition(y=training$classe, p=0.70, list=FALSE)
+subTraining <- training[subSamples, ] 
+subValidation <- training[-subSamples, ]
+```
+
+## Model 1 - using Decision Tree
+As an initial fit, I  tried building a model using a Decision tree. The advantage of this model is that it is faster to train and easier to visualize. The disadvantage is that it is generally less accurate.
+
+After training (code below): I got a very poor accuracy of 48% on my Validation set.
+
+Therefore, it was discarded in favor of a more accurate model.
+```{r}
+
+mod_DT <- train(classe ~ ., data = subTraining, method="rpart")
+pred_DT <-  predict(mod_DT, subValidation)
+
+confMat_DT <- table(subValidation$classe,pred_DT)
+
+accuracy_DT <- sum(diag(confMat_DT))/sum(confMat_DT)
+oose_DT <- 1 - accuracy_DT
+
+confMat_DT
+accuracy_DT
+oose_DT
+
+```
+## Model 2 - using Random Forest
+
+Due to the low accuracy of the above, I tried training a model using the Random Forest model.
+
+This model takes longer to train but has a much higher accuracy.
+
+As before, validated the results against the Validation set and calculated accuracy and OOSE.
+
+After training (code below): I got a fairly good accuracy of 99.71% on my Validation set.
+The estimated Out of Sample error is .29%
+
+```{r}
+mod_RF <- train(classe ~ ., data = subTraining, method = "rf", ntree = 100)
+pred_RF <- predict(mod_RF, subValidation)
+
+confMat_RF <- table(subValidation$classe,pred_RF)
+accuracy_RF <- sum(diag(confMat_RF))/sum(confMat_RF)
+oose_RF <- 1 - accuracy_RF
+
+confMat_RF
+accuracy_RF
+oose_RF
+```
+
+## Conclusion
+
+I am happy with the accuracy of my Random FOrest model so I will use it to predict the Testing set.
+
+This provides the final list of predicted values as follows:
+
+```{r}
+pred_RF_Final <- predict(mod_RF, testing)
+pred_RF_Final
+```
+
+
+
+
+
+

@@ -139,7 +139,7 @@ oose_RF
 
 ## Conclusion
 
-I am happy with the accuracy of my Random FOrest model so I will use it to predict the Testing set.
+I am happy with the accuracy of my Random Forest model so I will use it to predict the Testing set.
 
 This provides the final list of predicted values as follows:
 

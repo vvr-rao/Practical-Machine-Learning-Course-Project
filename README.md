@@ -11,7 +11,7 @@ The "correctness" of the exercise is denoted by the "classe" variable in the dat
 
 ##Conclusion
 
-My final Model was trained using Random Forests.
+My final Model was trained using the Random Forest model.
 
 I was able to train the model to an accuracy of 99.71% on my Validation set.
 The estimated Out of Sample error is .29%

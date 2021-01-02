@@ -18,4 +18,4 @@ The estimated Out of Sample error is .29%
 
 The predictions for the Test set are as follows:
 
-##  [1] B A B A A E D B A A B C B A E E A B B B
+  [1] B A B A A E D B A A B C B A E E A B B B
